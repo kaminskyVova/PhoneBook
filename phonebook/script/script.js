@@ -195,6 +195,7 @@ const data = [
       list: table.tbody,
       logo,
       btnAdd: buttonGroup.btns[0],
+      btnDel: buttonGroup.btns[1],
       formOverlay: form.overlay,
       form: form.form,
     };
@@ -202,6 +203,7 @@ const data = [
 
   const createRow = ({ name: firstName, surname, phone }) => {
     const tr = document.createElement('tr');
+    tr.classList.add('contact');
 
     const tdDel = document.createElement('td');
     tdDel.classList.add('delete');
@@ -211,8 +213,10 @@ const data = [
 
     const tdName = document.createElement('td');
     tdName.textContent = firstName;
+    tdName.classList.add('name');
     const tdSurname = document.createElement('td');
     tdSurname.textContent = surname;
+    tdSurname.classList.add('surname');
     const tdPhone = document.createElement('td');
     const phoneLink = document.createElement('a');
     phoneLink.href = `tel:${phone}`;
@@ -243,7 +247,9 @@ const data = [
 
   const renderContacts = (elem, data) => {
     const allRow = data.map(createRow);
+    // allRow.sort((a, b) => (a.name > b.name ? -1 : 1));
     elem.append(...allRow);
+
     return allRow;
   };
 
@@ -262,35 +268,74 @@ const data = [
     });
   };
 
-
   const init = (selectorApp, title) => {
     const app = document.querySelector(selectorApp);
     const phoneBook = renderPhoneBook(app, title);
 
-    const { list, logo, btnAdd, formOverlay, form } = phoneBook;
+    const { list, logo, btnAdd, btnDel, formOverlay, form } = phoneBook;
 
     // * Функционал
     const allRow = renderContacts(list, data);
     hoverRow(allRow, logo);
 
-    // !!! Open Pop-up
-    btnAdd.addEventListener('click', ()=> {
-      formOverlay.classList.add('is-visible')
-    })
+    const getSortRows = () => {
+      const rows = Array.from(document.querySelectorAll('tr')).slice(1);
+      const tableBody = document.querySelector('tbody');
 
-    // !!! Close Pop-up
-    const closeBtn = document.querySelector('.close')
-    closeBtn.addEventListener('click', () => {
-      formOverlay.classList.remove('is-visible')
-    })
+      document.querySelectorAll('.contact').forEach((tr) => {
+        tr.addEventListener('click', (e) => {
+          const target = e.target;
+          if (target.closest('.name')) {
+            rows.sort((rowA, rowB) =>
+              rowA.cells[1].innerHTML > rowB.cells[1].innerHTML ? 1 : -1
+            );
+            tableBody.append(...rows);
+          }
+          if (target.closest('.surname')) {
+            rows.sort((rowA, rowB) =>
+              rowA.cells[2].innerHTML > rowB.cells[2].innerHTML ? 1 : -1
+            );
+            tableBody.append(...rows);
+          }
+        });
+      });
 
-    form.addEventListener('click', e => {
-      e.stopPropagation();
-    })
+      return rows;
+    };
+    getSortRows();
 
-    formOverlay.addEventListener('click', (e) => {
-      formOverlay.classList.remove('is-visible')
-    })
+    const closeOpenPopup = () => {
+      const mainContainer = document.querySelector('main');
+      mainContainer.addEventListener('click', (e) => {
+        const target = e.target;
+        // !!! Open Pop-up
+        if (target === btnAdd) {
+          formOverlay.classList.add('is-visible');
+        }
+        // !!! Close Pop-up
+        if (
+          target.closest('.close') ||
+          target.classList.contains('form-overlay')
+        ) {
+          formOverlay.classList.remove('is-visible');
+        }
+      });
+    };
+    closeOpenPopup();
+
+    btnDel.addEventListener('click', () => {
+      document.querySelectorAll('.delete').forEach((del) => {
+        del.classList.toggle('is-visible');
+      });
+    });
+
+    list.addEventListener('click', (e) => {
+      const target = e.target;
+
+      if (target.closest('.del-icon') || target.closest('.table__btn_del')) {
+        target.closest('.contact').remove();
+      }
+    });
   };
 
   window.phoneBookInit = init;
