@@ -24,6 +24,10 @@ const data = [
 ];
 
 {
+  const addContactToData = (contact) => {
+    data.push(contact);
+  };
+
   const createContainer = () => {
     const container = document.createElement('div');
     container.classList.add('container');
@@ -183,11 +187,11 @@ const data = [
     ]);
 
     const table = createTable();
-    const form = createForm();
+    const { form, overlay } = createForm();
     const footer = createFooter();
 
     header.headerContainer.append(logo);
-    main.mainContainer.append(buttonGroup.btnWrapper, table, form.overlay);
+    main.mainContainer.append(buttonGroup.btnWrapper, table, overlay);
 
     app.append(header, main, footer);
 
@@ -196,8 +200,8 @@ const data = [
       logo,
       btnAdd: buttonGroup.btns[0],
       btnDel: buttonGroup.btns[1],
-      formOverlay: form.overlay,
-      form: form.form,
+      formOverlay: overlay,
+      form,
     };
   };
 
@@ -247,7 +251,6 @@ const data = [
 
   const renderContacts = (elem, data) => {
     const allRow = data.map(createRow);
-    // allRow.sort((a, b) => (a.name > b.name ? -1 : 1));
     elem.append(...allRow);
 
     return allRow;
@@ -255,74 +258,30 @@ const data = [
 
   const hoverRow = (allRow, logo) => {
     const text = logo.textContent;
-    allRow.forEach((contact) => {
-      contact.addEventListener('mouseenter', () => {
-        logo.textContent = `
-          Имя Контакта: ${contact.name.textContent} 
-          Тел: ${contact.phoneLink.textContent}
-        `;
-      });
-      contact.addEventListener('mouseleave', () => {
-        logo.textContent = text;
-      });
-    });
+
+    const tbody = document.querySelector('tbody');
+    tbody.classList.add('table__body');
+
+    tbody.addEventListener(
+      'mouseenter',
+      (e) => {
+        const target = e.target;
+        if (e.target.className === 'contact') {
+          logo.textContent = `
+            Имя Контакта: ${target.name.textContent} 
+            Тел: ${target.phoneLink.textContent}
+          `;
+        }
+
+        target.addEventListener('mouseleave', () => {
+          logo.textContent = text;
+        });
+      },
+      true
+    );
   };
 
-  const init = (selectorApp, title) => {
-    const app = document.querySelector(selectorApp);
-    const phoneBook = renderPhoneBook(app, title);
-
-    const { list, logo, btnAdd, btnDel, formOverlay, form } = phoneBook;
-
-    // * Функционал
-    const allRow = renderContacts(list, data);
-    hoverRow(allRow, logo);
-
-    const getSortRows = () => {
-      const rows = Array.from(document.querySelectorAll('tr')).slice(1);
-      const tableBody = document.querySelector('tbody');
-
-      document.querySelectorAll('.contact').forEach((tr) => {
-        tr.addEventListener('click', (e) => {
-          const target = e.target;
-          if (target.closest('.name')) {
-            rows.sort((rowA, rowB) =>
-              rowA.cells[1].innerHTML > rowB.cells[1].innerHTML ? 1 : -1
-            );
-            tableBody.append(...rows);
-          }
-          if (target.closest('.surname')) {
-            rows.sort((rowA, rowB) =>
-              rowA.cells[2].innerHTML > rowB.cells[2].innerHTML ? 1 : -1
-            );
-            tableBody.append(...rows);
-          }
-        });
-      });
-
-      return rows;
-    };
-    getSortRows();
-
-    const closeOpenPopup = () => {
-      const mainContainer = document.querySelector('main');
-      mainContainer.addEventListener('click', (e) => {
-        const target = e.target;
-        // !!! Open Pop-up
-        if (target === btnAdd) {
-          formOverlay.classList.add('is-visible');
-        }
-        // !!! Close Pop-up
-        if (
-          target.closest('.close') ||
-          target.classList.contains('form-overlay')
-        ) {
-          formOverlay.classList.remove('is-visible');
-        }
-      });
-    };
-    closeOpenPopup();
-
+  const deleteContactRow = (btnDel, list) => {
     btnDel.addEventListener('click', () => {
       document.querySelectorAll('.delete').forEach((del) => {
         del.classList.toggle('is-visible');
@@ -336,6 +295,95 @@ const data = [
         target.closest('.contact').remove();
       }
     });
+  };
+
+  const popupControl = (btnAdd, formOverlay) => {
+    const openPopup = () => {
+      formOverlay.classList.add('is-visible');
+    };
+
+    const closePopup = () => {
+      formOverlay.classList.remove('is-visible');
+    };
+    const mainContainer = document.querySelector('main');
+    mainContainer.addEventListener('click', (e) => {
+      const target = e.target;
+      // !!! Open Pop-up
+      if (target === btnAdd) {
+        openPopup();
+      }
+      // !!! Close Pop-up
+      if (
+        target.closest('.close') ||
+        target.classList.contains('form-overlay')
+      ) {
+        closePopup();
+      }
+    });
+
+    return { openPopup, closePopup };
+  };
+
+  const getSortRows = () => {
+    const rows = Array.from(document.querySelectorAll('tr')).slice(1);
+    const tableBody = document.querySelector('tbody');
+
+    document.querySelectorAll('.contact').forEach((tr) => {
+      tr.addEventListener('click', (e) => {
+        const target = e.target;
+        if (target.closest('.name')) {
+          rows.sort((rowA, rowB) =>
+            rowA.cells[1].innerHTML > rowB.cells[1].innerHTML ? 1 : -1
+          );
+          tableBody.append(...rows);
+        }
+        if (target.closest('.surname')) {
+          rows.sort((rowA, rowB) =>
+            rowA.cells[2].innerHTML > rowB.cells[2].innerHTML ? 1 : -1
+          );
+          tableBody.append(...rows);
+        }
+      });
+    });
+
+    return rows;
+  };
+
+  const addContactToPage = (contact, list) => {
+    list.append(createRow(contact));
+  };
+
+  const formControl = (form, list, closePopup) => {
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+
+      const formData = new FormData(e.target);
+      const newContact = Object.fromEntries(formData);
+
+      addContactToData(newContact);
+      addContactToPage(newContact, list);
+
+      form.reset();
+      closePopup();
+    });
+  };
+
+  const init = (selectorApp, title) => {
+    const app = document.querySelector(selectorApp);
+
+    const { list, logo, btnAdd, btnDel, formOverlay, form } = renderPhoneBook(
+      app,
+      title
+    );
+
+    // * Функционал
+    const { closePopup } = popupControl(btnAdd, formOverlay);
+    const allRow = renderContacts(list, data);
+
+    formControl(form, list, closePopup);
+    deleteContactRow(btnDel, list);
+    getSortRows();
+    hoverRow(allRow, logo);
   };
 
   window.phoneBookInit = init;
