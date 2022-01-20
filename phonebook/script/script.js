@@ -36,13 +36,12 @@
     let newContacts = [];
     for (let i = 0; i < contacts.length; i++) {
       if (
-        contacts[i].name != contact.name &&
-        contacts[i].surname != contact.surname &&
         contacts[i].phone != contact.phone
       ) {
         newContacts.push(contacts[i]);
       }
     }
+
     localStorage.setItem(key, JSON.stringify(newContacts));
   };
 
