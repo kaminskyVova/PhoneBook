@@ -1,31 +1,49 @@
 'use strict';
 
-const data = [
-  {
-    name: 'Иван',
-    surname: 'Петров',
-    phone: '+79514545454',
-  },
-  {
-    name: 'Игорь',
-    surname: 'Семёнов',
-    phone: '+79999999999',
-  },
-  {
-    name: 'Семён',
-    surname: 'Иванов',
-    phone: '+79800252525',
-  },
-  {
-    name: 'Мария',
-    surname: 'Попова',
-    phone: '+79876543210',
-  },
-];
-
 {
-  const addContactToData = (contact) => {
-    data.push(contact);
+  let contacts = [];
+  // !!! Перебор хранилища
+  const getLocalStorageData = () =>
+    Object.entries(localStorage).reduce((acc, [key, value]) => {
+      try {
+        contacts = JSON.parse(value);
+      } catch {
+        contacts = value;
+      }
+      return {
+        ...acc,
+        [key]: contacts,
+      };
+    }, {});
+  getLocalStorageData();
+
+  const getStorage = (key) => {
+    const contact = JSON.parse(localStorage.getItem(key));
+    return localStorage.length > 0 ? contact : [];
+  };
+
+  const setStorage = (key, obj) => {
+    localStorage.setItem(key, JSON.stringify(obj));
+    const contactFromStorage = getStorage(key);
+    contacts.push(contactFromStorage);
+
+    localStorage.setItem('contacts', JSON.stringify(contacts));
+    localStorage.removeItem(key);
+  };
+
+  const removeStorage = (key, contact) => {
+    let contacts = JSON.parse(localStorage.getItem(key));
+    let newContacts = [];
+    for (let i = 0; i < contacts.length; i++) {
+      if (
+        contacts[i].name != contact.name &&
+        contacts[i].surname != contact.surname &&
+        contacts[i].phone != contact.phone
+      ) {
+        newContacts.push(contacts[i]);
+      }
+    }
+    localStorage.setItem(key, JSON.stringify(newContacts));
   };
 
   const createContainer = () => {
@@ -249,8 +267,8 @@ const data = [
     return tr;
   };
 
-  const renderContacts = (elem, data) => {
-    const allRow = data.map(createRow);
+  const renderContacts = (elem, contacts) => {
+    const allRow = contacts.map(createRow);
     elem.append(...allRow);
 
     return allRow;
@@ -292,6 +310,17 @@ const data = [
       const target = e.target;
 
       if (target.closest('.del-icon') || target.closest('.table__btn_del')) {
+        const tr = target.closest('tr');
+        const firstname = tr.querySelector('td:nth-child(2)').textContent;
+        const surname = tr.querySelector('td:nth-child(3)').textContent;
+        const number = tr.querySelector('td:nth-child(4)').textContent;
+
+        const contact = {
+          name: firstname,
+          surname: surname,
+          phone: number,
+        };
+        removeStorage('contacts', contact);
         target.closest('.contact').remove();
       }
     });
@@ -346,11 +375,13 @@ const data = [
       });
     });
 
+    
     return rows;
   };
 
   const addContactToPage = (contact, list) => {
     list.append(createRow(contact));
+    getSortRows();
   };
 
   const formControl = (form, list, closePopup) => {
@@ -359,9 +390,12 @@ const data = [
 
       const formData = new FormData(e.target);
       const newContact = Object.fromEntries(formData);
+      newContact._id = newContact.phone;
 
-      addContactToData(newContact);
+      setStorage(newContact.phone, newContact);
+      getStorage(newContact.phone);
       addContactToPage(newContact, list);
+      getSortRows();
 
       form.reset();
       closePopup();
@@ -378,7 +412,7 @@ const data = [
 
     // * Функционал
     const { closePopup } = popupControl(btnAdd, formOverlay);
-    const allRow = renderContacts(list, data);
+    const allRow = renderContacts(list, contacts);
 
     formControl(form, list, closePopup);
     deleteContactRow(btnDel, list);
