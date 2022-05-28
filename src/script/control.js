@@ -1,7 +1,7 @@
 
-import * as storage from './serviceStorage.js'
+import * as storage from './serviceStorage'
 
-import {createRow} from './createElements.js';
+import {createRow} from './createElements';
 
 export const deleteContactRow = (btnDel, list) => {
   btnDel.addEventListener('click', () => {

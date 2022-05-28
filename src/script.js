@@ -1,16 +1,18 @@
-
 import {
   renderPhoneBook,
   renderContactsFromLocalStorage as contactsFromStorage,
   hoverRow,
-} from './modules/render.js';
+} from './script/render';
 
 import {
   deleteContactRow,
   popupControl,
   getSortRows,
   formControl,
-} from './modules/control.js';
+} from './script/control';
+
+import './index.html';
+import './scss/index.scss';
 
 {
   const init = (selectorApp, title) => {
@@ -31,5 +33,5 @@ import {
     hoverRow(allRow, logo);
   };
 
-  window.phoneBookInit = init;
+  init('#app', 'Vladimir');
 }

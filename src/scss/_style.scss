@@ -1,13 +1,18 @@
+$mainColor: #3E5E93;
+
 body {
   min-width: 420px;
+  padding-bottom: 50px;
+  font-family: Montserrat, sans-serif;
 }
 
 .header {
-  background-color: #3e5e93;
+  background-color: $mainColor;
   color: #fff;
   margin-bottom: 40px;
   padding: 20px 0;
   text-align: center;
+  box-shadow: 4px 4px 8px 0px rgba(34, 60, 80, 0.2);
 }
 
 .logo {
@@ -16,14 +21,13 @@ body {
   text-transform: uppercase;
 }
 
-@media (max-width: 720px) {
-  .logo {
-    font-size: 20px;
-  }
-}
-
 .delete {
   display: none;
+
+  &.is-visible {
+    width: 10px;
+    display: table-cell;
+  }
 }
 
 .del-icon {
@@ -32,15 +36,14 @@ body {
   height: 10px;
   border: none;
   background-color: transparent;
-  background-image: url('../img/del.svg');
+  background-image: url("../img/del.svg");
   background-size: contain;
   background-repeat: no-repeat;
   background-position: center;
-}
 
-.delete.is-visible {
-  width: 10px;
-  display: table-cell;
+  &:hover {
+    opacity: 0.7;
+  }
 }
 
 .btn-wrapper {
@@ -86,16 +89,17 @@ body {
   visibility: hidden;
   width: 100%;
   z-index: 1;
-}
 
-.form-overlay.is-visible {
-  opacity: 1;
-  visibility: visible;
-}
+  &.is-visible {
+    opacity: 1;
+    visibility: visible;
 
-.form-overlay.is-visible .form {
-  opacity: 1;
-  top: 40px;
+    .form {
+      opacity: 1;
+      top: 40px;
+    }
+  }
+
 }
 
 .close {
@@ -108,13 +112,30 @@ body {
   background-size: contain;
   background-repeat: no-repeat;
   background-position: center;
-  background-image: url('../img/del.svg');
+  background-image: url("../img/del.svg");
+
+  &:hover {
+    opacity: 0.7;
+  }
 }
 
-.del-icon:hover,
-.close:hover {
-  opacity: 0.7;
+.table__btn_edit {
+  height: 23px;
+  margin-right: 6px;
+  background-image: url('../img/edit.svg');
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
 }
+
+.table__btn_del {
+  height: 23px;
+  background-image: url('../img/delete.svg');
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
 
 .footer {
   position: fixed;
@@ -122,22 +143,14 @@ body {
   left: 0;
   right: 0;
   padding: 10px;
-  background-color: #3e5e93;
+  background-color: $mainColor;
   color: #fff;
   text-align: center;
 }
 
-.table__btn_edit {
-  height: 23px;
-  margin-right: 6px;
-  background-image: url('../img/edit.svg');
-  background-position: center;
-  background-repeat: no-repeat;
-}
-
-.table__btn_del {
-  height: 23px;
-  background-image: url('../img/delete.svg');
-  background-position: center;
-  background-repeat: no-repeat;
+@media (max-width: 720px) {
+  .logo {
+    font-size: 20px;
+    display: grid;
+  }
 }
